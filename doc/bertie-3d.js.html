@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+	<title>bertie.3d Source: bertie-3d.js</title>
+
+	<!--[if lt IE 9]>
+	<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+	<link type="text/css" rel="stylesheet" href="styles/sunlight.default.css">
+
+	<link type="text/css" rel="stylesheet" href="styles/site.spacelab.css">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-default navbar-fixed-top navbar-inverse">
+<div class="container">
+	<div class="navbar-header">
+		<a class="navbar-brand" href="index.html">bertie.3d</a>
+		<button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#topNavigation">
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+        </button>
+	</div>
+	<div class="navbar-collapse collapse" id="topNavigation">
+		<ul class="nav navbar-nav">
+			
+			<li class="dropdown">
+				<a href="namespaces.list.html" class="dropdown-toggle" data-toggle="dropdown">Namespaces<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="bertie.html">bertie</a></li>
+				</ul>
+			</li>
+			
+			<li class="dropdown">
+				<a href="classes.list.html" class="dropdown-toggle" data-toggle="dropdown">Classes<b class="caret"></b></a>
+				<ul class="dropdown-menu ">
+					<li><a href="bertie.threed.html">bertie.threed</a></li>
+				</ul>
+			</li>
+			
+		</ul>
+        
+            <div class="col-sm-3 col-md-3">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search" name="q" id="search-input">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" id="search-submit"><i class="glyphicon glyphicon-search"></i></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+	</div>
+
+</div>
+</div>
+
+
+<div class="container" id="toc-content">
+<div class="row">
+
+	
+	<div class="col-md-12">
+	
+		<div id="main">
+			
+
+		<h1 class="page-title">Source: bertie-3d.js</h1>
+    
+<section>
+    <article>
+        <pre
+            class="sunlight-highlight-javascript linenums">
+(function(bertie) {
+    'use strict';
+	bertie.threed = (function() {
+/**
+ * @namespace bertie
+ * 
+*/
+		class bertiethreed {
+/**
+ * Class defining a 3D space
+ * @alias bertie.threed
+ * @author Paul I Clark
+ * @param {object} - object of property names and values
+ * @property {float} yaw - the angle of yaw of the viewer to the focal point - default = 0
+ * @property {float} elevation - the angle of elevation (radians) of the viewer to the ground - default = 0
+ * @property {float} twist - the angle of twist (radians) of the viewer to the horizon - default = 0
+ * @property {integer} fromEye - the distance of the focal point (point(0,0,0)) to the viewer - default = 800
+ * @property {integer} onscreen - the pixels on the screen that represent the field-of-view (fov) - default = 500
+ * @property {float} fov - the field of view in radians - default = PI/3
+ * @property {vector} eye - the vector defining the location of the viewer according to the axial planes, calculated from yaw, twist and elevation
+*/
+			constructor(opts) {
+				if (bertie.vector===undefined) return false;
+				this.properties={
+					yaw:0,
+					elevation:0,
+					twist:0,
+					fromEye:800,
+					onscreen:500,
+					fov:Math.PI/3
+				};
+				Object.assign(this.properties,opts);
+				
+				this.eye=new bertie.vector();
+				this.eyeVector();
+			}
+			get yaw() {
+				return this.properties.yaw;
+			}
+			get elevation() {
+				return this.properties.elevation;
+			}
+			get twist() {
+				return this.properties.twist;
+			}
+			get fromEye() {
+				return this.properties.fromEye;
+			}
+			get onscreen() {
+				return this.properties.onscreen;
+			}
+			get fov() {
+				return this.properties.fov;
+			}
+			set yaw(v) {
+				if (this.properties.yaw!=v) {
+					this.properties.yaw=v;
+					this.changed();
+				}
+			}
+			set elevation(v) {
+				if (this.properties.elevation!=v) {
+					this.properties.elevation=v;
+					this.changed();
+				}
+			}
+			set twist(v) {
+				if (this.properties.twist!=v) {
+					this.properties.twist=v;
+					this.changed();
+				}
+			}
+			set fromEye(v) {
+				if (this.properties.fromEye!=v) {
+					this.properties.fromEye=v;
+					this.changed();
+				}
+			}
+			set onscreen(v) {
+				if (this.properties.onscreen!=v) {
+					this.properties.onscreen=v;
+					this.changed();
+				}
+			}
+			set fov(v) {
+				if (this.properties.fov!=v) {
+					this.properties.fov=v;
+					this.changed();
+				}
+			}
+			changed() {
+				this.eyeVector();
+			}
+/**
+ * Transpose a 3D position into a 2D polar coordinate
+ * @alias bertie.threed.transpose
+ * @method bertie.threed#transpose
+ * @param {float|vector} x - 3D x position or a bertie.vector object
+ * @param {float} y - 3D y position (if x in not a bertie.vector object)
+ * @param {float} z - 3D z position (if x in not a bertie.vector object)
+ * @return {array} [x, y, fe] - 2D x position from center, 2D y position from center, distance from the eye;
+*/
+			transpose(x, ...args) {
+				var p=null;
+				if (isNaN(x) &amp;&amp; x instanceof bertie.vector) {
+					p=x;
+				}else if (args.length==2) {
+					p=new bertie.vector(x,args[0],args[1]);
+				}
+				// elevation
+				p.rotateX(this.elevation);
+				// yaw
+				p.rotateY(this.twist);
+				// twist
+				p.rotateZ(this.yaw);
+				//polar position
+				var pa = Math.atan2(p.directions[2], p.directions[0]); // polar angle
+				var r = Math.sqrt(Math.pow(p.directions[2], 2)+Math.pow(p.directions[0], 2)); // polar radius
+				//fromEye
+				var apr = (
+						(
+							this.fromEye*Math.tan(
+								Math.atan2(r, (this.fromEye+p.directions[1]))
+							)
+						)/(
+							this.fromEye*Math.tan(this.fov)
+						)
+					)*this.onscreen;
+				//find x,y
+				return [
+					apr*Math.cos(pa),
+					-apr*Math.sin(pa),
+					Math.sqrt(Math.pow((this.fromEye+p.directions[1]),2)+Math.pow(r,2))
+				];
+			}
+			/*radiusSize(r,d,e){
+				var a=Math.atan2(r,e);
+				return d*Math.tan(a);
+			}*/
+/* recalculate the eye vector whenever any other property changes */
+			eyeVector() {
+				this.eye.setDirection(0,-this.fromEye,0);
+				this.eye.rotateZ(-this.yaw);
+				this.eye.rotateY(-this.twist);
+				this.eye.rotateX(-this.elevation);
+				this.eye.flip();
+			}
+		}
+		return bertiethreed;
+	}());
+}(window.bertie = window.bertie || {}));</pre>
+    </article>
+</section>
+
+
+
+
+
+		</div>
+	</div>
+
+	<div class="clearfix"></div>
+
+	
+
+</div>
+</div>
+
+
+    <div class="modal fade" id="searchResults">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Search results</h4>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div>
+
+
+<footer>
+
+
+	<span class="copyright">
+	Paul I Clark Copyright © 2017.
+	</span>
+
+<span class="jsdoc-message">
+	Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a>
+	
+		on Wed Sep 20th 2017
+	
+	using the <a href="https://github.com/docstrap/docstrap">DocStrap template</a>.
+</span>
+</footer>
+
+<script src="scripts/docstrap.lib.js"></script>
+<script src="scripts/toc.js"></script>
+
+    <script type="text/javascript" src="scripts/fulltext-search-ui.js"></script>
+
+
+<script>
+$( function () {
+	$( "[id*='$']" ).each( function () {
+		var $this = $( this );
+
+		$this.attr( "id", $this.attr( "id" ).replace( "$", "__" ) );
+	} );
+
+	$( ".tutorial-section pre, .readme-section pre, pre.prettyprint.source" ).each( function () {
+		var $this = $( this );
+
+		var example = $this.find( "code" );
+		exampleText = example.html();
+		var lang = /{@lang (.*?)}/.exec( exampleText );
+		if ( lang && lang[1] ) {
+			exampleText = exampleText.replace( lang[0], "" );
+			example.html( exampleText );
+			lang = lang[1];
+		} else {
+			var langClassMatch = example.parent()[0].className.match(/lang\-(\S+)/);
+			lang = langClassMatch ? langClassMatch[1] : "javascript";
+		}
+
+		if ( lang ) {
+
+			$this
+			.addClass( "sunlight-highlight-" + lang )
+			.addClass( "linenums" )
+			.html( example.html() );
+
+		}
+	} );
+
+	Sunlight.highlightAll( {
+		lineNumbers : true,
+		showMenu : true,
+		enableDoclinks : true
+	} );
+
+	$.catchAnchorLinks( {
+        navbarOffset: 10
+	} );
+	$( "#toc" ).toc( {
+		anchorName  : function ( i, heading, prefix ) {
+			return $( heading ).attr( "id" ) || ( prefix + i );
+		},
+		selectors   : "#toc-content h1,#toc-content h2,#toc-content h3,#toc-content h4",
+		showAndHide : false,
+		smoothScrolling: true
+	} );
+
+	$( "#main span[id^='toc']" ).addClass( "toc-shim" );
+	$( '.dropdown-toggle' ).dropdown();
+
+    $( "table" ).each( function () {
+      var $this = $( this );
+      $this.addClass('table');
+    } );
+
+} );
+</script>
+
+
+
+<!--Navigation and Symbol Display-->
+
+
+<!--Google Analytics-->
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            SearcherDisplay.init();
+        });
+    </script>
+
+
+</body>
+</html>
