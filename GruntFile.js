@@ -22,7 +22,7 @@ module.exports = function(grunt) {
 		     },
 		     dist: {
 		         files: {
-		             'dist/js/<%= pkg.name %>.min.js': ['src/js/*.js'/*,'node_modules/bertie.vector/dist/js/bertie.vector.js'*/]
+		             'dist/js/<%= pkg.name %>.min.js': ['src/js/*.js','node_modules/bertie.vector/dist/js/bertie.vector.js']
 		         }
 		     },
 		     beaut: {
@@ -30,7 +30,7 @@ module.exports = function(grunt) {
 					beautify: true
 				  },
 		         files: {
-		             'dist/js/<%= pkg.name %>.js': ['src/js/*.js'/*,'node_modules/bertie.vector/dist/js/bertie.vector.js'*/]
+		             'dist/js/<%= pkg.name %>.js': ['src/js/*.js','node_modules/bertie.vector/dist/js/bertie.vector.js']
 		         }
 		     }
 		 },
@@ -48,7 +48,7 @@ module.exports = function(grunt) {
 
 		jsdoc: {
 			dist: {
-				src: ['<%= pic.app %>/js/*.js'/*,'node_modules/bertie.vector/<%= pic.app %>/js/*.js'*/],
+				src: ['<%= pic.app %>/js/*.js','node_modules/bertie.vector/<%= pic.app %>/js/*.js'],
 				options: {
           			configure: './jsdoc.conf.json',
 					destination: '<%= pic.doc %>',

@@ -3,8 +3,8 @@
 !function(t) {
     "use strict";
     t.threed = function() {
-        class e {
-            constructor(e) {
+        class i {
+            constructor(i) {
                 if (void 0 === t.vector) return !1;
                 this.properties = {
                     yaw: 0,
@@ -13,7 +13,7 @@
                     fromEye: 800,
                     onscreen: 500,
                     fov: Math.PI / 3
-                }, Object.assign(this.properties, e), this.eye = new t.vector(), this.eyeVector();
+                }, Object.assign(this.properties, i), this.eye = new t.vector(), this.eyeVector();
             }
             get yaw() {
                 return this.properties.yaw;
@@ -54,18 +54,81 @@
             changed() {
                 this.eyeVector();
             }
-            transpose(e, ...i) {
+            transpose(i, ...e) {
                 var s = null;
-                isNaN(e) && e instanceof t.vector ? s = e : 2 == i.length && (s = new t.vector(e, i[0], i[1])), 
+                isNaN(i) && i instanceof t.vector ? s = i : 2 == e.length && (s = new t.vector(i, e[0], e[1])), 
                 s.rotateX(this.elevation), s.rotateY(this.twist), s.rotateZ(this.yaw);
-                var r = Math.atan2(s.directions[2], s.directions[0]), o = Math.sqrt(Math.pow(s.directions[2], 2) + Math.pow(s.directions[0], 2)), h = this.fromEye * Math.tan(Math.atan2(o, this.fromEye + s.directions[1])) / (this.fromEye * Math.tan(this.fov)) * this.onscreen;
-                return [ h * Math.cos(r), -h * Math.sin(r), Math.sqrt(Math.pow(this.fromEye + s.directions[1], 2) + Math.pow(o, 2)) ];
+                var r = Math.atan2(s.directions[2], s.directions[0]), n = Math.sqrt(Math.pow(s.directions[2], 2) + Math.pow(s.directions[0], 2)), h = this.fromEye * Math.tan(Math.atan2(n, this.fromEye + s.directions[1])) / (this.fromEye * Math.tan(this.fov)) * this.onscreen;
+                return [ h * Math.cos(r), -h * Math.sin(r), Math.sqrt(Math.pow(this.fromEye + s.directions[1], 2) + Math.pow(n, 2)) ];
             }
             eyeVector() {
                 this.eye.setDirection(0, -this.fromEye, 0), this.eye.rotateZ(-this.yaw), this.eye.rotateY(-this.twist), 
                 this.eye.rotateX(-this.elevation), this.eye.flip();
             }
         }
-        return e;
+        return i;
+    }();
+}(window.bertie = window.bertie || {}), function(t) {
+    "use strict";
+    t.vector = function() {
+        class i {
+            constructor(...t) {
+                this.unit = null, this.lengthValue = null, t.length >= 3 ? this.directions = [ t[0], t[1], t[2] ] : this.directions = [ 0, 0, 0 ];
+            }
+            setDirection(t, i, e) {
+                this.directions = [ t, i, e ], this.unit = null, this.lengthValue = null;
+            }
+            add(t, i, e) {
+                this.directions[0] += t, this.directions[1] += i, this.directions[2] += e, this.unit = null, 
+                this.lengthValue = null;
+            }
+            getLength() {
+                return null === this.lengthValue && (this.lengthValue = Math.sqrt(Math.pow(this.directions[0], 2) + Math.pow(this.directions[1], 2) + Math.pow(this.directions[2], 2))), 
+                this.lengthValue;
+            }
+            unitVector() {
+                return 0 == this.directions[0] && 0 == this.directions[1] && 0 == this.directions[2] ? [ 0, 0, 0 ] : 0 == this.getLength() ? [ 0, 0, 0 ] : ((null === this.unit || isNaN(this.unit[0]) || isNaN(this.unit[1]) || isNaN(this.unit[2])) && (this.unit = [ this.directions[0] / this.getLength(), this.directions[1] / this.getLength(), this.directions[2] / this.getLength() ]), 
+                this.unit);
+            }
+            dotProduct(i) {
+                if (i instanceof t.vector) {
+                    var e = i.unitVector(), s = this.unitVector();
+                    return e[0] * s[0] + e[1] * s[1] + e[2] * s[2];
+                }
+                return !1;
+            }
+            flip() {
+                this.directions[0] = -this.directions[0], this.directions[1] = -this.directions[1], 
+                this.directions[2] = -this.directions[2], this.unit = null, this.lengthValue = null;
+            }
+            angleBetween(i) {
+                if (i instanceof t.vector) {
+                    var e = this.dotProduct(i);
+                    return Math.PI / 2 - Math.PI / 2 * e;
+                }
+                return !1;
+            }
+            rotateX(t) {
+                var i = [ 0, 0, 0 ];
+                i[0] = this.directions[0], i[1] = this.directions[1] * Math.cos(t) - this.directions[2] * Math.sin(t), 
+                i[2] = this.directions[1] * Math.sin(t) + this.directions[2] * Math.cos(t), this.directions = i, 
+                this.unit = null, this.lengthValue = null;
+            }
+            rotateY(t) {
+                var i = [ 0, 0, 0 ];
+                i[0] = this.directions[0] * Math.cos(t) + this.directions[2] * Math.sin(t), i[1] = this.directions[1], 
+                i[2] = this.directions[2] * Math.cos(t) - this.directions[0] * Math.sin(t), this.directions = i, 
+                this.unit = null, this.lengthValue = null;
+            }
+            rotateZ(t) {
+                var i = [ 0, 0, 0 ];
+                i[0] = this.directions[0] * Math.cos(t) - this.directions[1] * Math.sin(t), i[1] = this.directions[0] * Math.sin(t) + this.directions[1] * Math.cos(t), 
+                i[2] = this.directions[2], this.directions = i, this.unit = null, this.lengthValue = null;
+            }
+            clone() {
+                return new vector(this.directions[0], this.directions[1], this.directions[2]);
+            }
+        }
+        return i;
     }();
 }(window.bertie = window.bertie || {});
